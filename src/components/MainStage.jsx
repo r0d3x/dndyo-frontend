@@ -1,35 +1,35 @@
 import React, { useState, useEffect } from "react";
-import { Dice5, Skull, Target, Swords, XCircle } from "lucide-react";
+import { Dice5, Skull, Target, Swords } from "lucide-react";
 import { character } from "../data/mockData";
 
 /*  Walkable Areas (Static map collision)  */
 const walkableAreas = [
-    // Central Room (With Padding)
-    { xMin: 31, xMax: 69, yMin: 27, yMax: 63 },
-    // South Corridor
-    { xMin: 44, xMax: 56, yMin: 63, yMax: 93 },
-    // North Fireplace Room
-    { xMin: 37, xMax: 63, yMin: 20, yMax: 25 },
-    // West Corridor
-    { xMin: 22, xMax: 28, yMin: 42, yMax: 56 },
-    // East Corridor
-    { xMin: 72, xMax: 78, yMin: 42, yMax: 56 },
-    // NW Room
-    { xMin: 6, xMax: 26, yMin: 6, yMax: 28 },
-    // NE Room
-    { xMin: 74, xMax: 94, yMin: 6, yMax: 28 },
-    // SW Room
-    { xMin: 6, xMax: 28, yMin: 70, yMax: 94 },
-    // SE Room
-    { xMin: 72, xMax: 95, yMin: 70, yMax: 94 },
-    // Vertical Corridors connecting corner rooms
-    { xMin: 12, xMax: 18, yMin: 28, yMax: 70 }, // West interconnect
-    { xMin: 82, xMax: 88, yMin: 28, yMax: 70 }, // East interconnect
-    // Horizontal Corridors connecting corner rooms to center
-    { xMin: 26, xMax: 44, yMin: 12, yMax: 18 }, // NW to North
-    { xMin: 56, xMax: 74, yMin: 12, yMax: 18 }, // NE to North
-    { xMin: 26, xMax: 44, yMin: 82, yMax: 88 }, // SW to South
-    { xMin: 56, xMax: 74, yMin: 82, yMax: 88 }, // SE to South
+    // Main 3x3 Rooms Grid
+    { xMin: 30, xMax: 70, yMin: 25, yMax: 65 }, // Center
+    { xMin: 35, xMax: 65, yMin: 4, yMax: 26 }, // North
+    { xMin: 40, xMax: 60, yMin: 64, yMax: 96 }, // South
+    { xMin: 4, xMax: 30, yMin: 35, yMax: 55 }, // West
+    { xMin: 70, xMax: 96, yMin: 35, yMax: 55 }, // East
+    { xMin: 4, xMax: 30, yMin: 4, yMax: 30 }, // NW
+    { xMin: 70, xMax: 96, yMin: 4, yMax: 30 }, // NE
+    { xMin: 4, xMax: 30, yMin: 70, yMax: 96 }, // SW
+    { xMin: 70, xMax: 96, yMin: 70, yMax: 96 }, // SE
+
+    // Connecting doorways (very generous overlaps)
+    { xMin: 20, xMax: 40, yMin: 15, yMax: 25 }, // NW <-> North
+    { xMin: 15, xMax: 25, yMin: 20, yMax: 40 }, // NW <-> West
+    { xMin: 60, xMax: 80, yMin: 15, yMax: 25 }, // North <-> NE
+    { xMin: 75, xMax: 85, yMin: 20, yMax: 40 }, // NE <-> East
+    { xMin: 15, xMax: 25, yMin: 50, yMax: 75 }, // West <-> SW
+    { xMin: 20, xMax: 45, yMin: 75, yMax: 85 }, // SW <-> South
+    { xMin: 55, xMax: 80, yMin: 75, yMax: 85 }, // South <-> SE
+    { xMin: 75, xMax: 85, yMin: 50, yMax: 75 }, // East <-> SE
+
+    // Core connections to center
+    { xMin: 40, xMax: 60, yMin: 20, yMax: 30 }, // North <-> Center
+    { xMin: 40, xMax: 60, yMin: 60, yMax: 70 }, // South <-> Center
+    { xMin: 25, xMax: 35, yMin: 40, yMax: 50 }, // West <-> Center
+    { xMin: 65, xMax: 75, yMin: 40, yMax: 50 }, // East <-> Center
 ];
 
 const isValidMove = (x, y) => {
@@ -41,7 +41,6 @@ const isValidMove = (x, y) => {
 
 export default function MainStage() {
     const [playerPos, setPlayerPos] = useState({ x: 50, y: 80 });
-    const [invalidMoveMarker, setInvalidMoveMarker] = useState(null);
     const [enemies] = useState([
         { id: 1, name: "Goblin Raider", hp: 12, maxHp: 15, pos: { x: 38, y: 45 } },
         { id: 2, name: "Dire Wolf", hp: 20, maxHp: 20, pos: { x: 62, y: 38 } },
@@ -63,18 +62,8 @@ export default function MainStage() {
 
         if (isValidMove(x, y)) {
             setPlayerPos({ x, y });
-        } else {
-            setInvalidMoveMarker({ x, y, id: Date.now() });
         }
     };
-
-    // Auto-clear invalid move marker
-    useEffect(() => {
-        if (invalidMoveMarker) {
-            const timer = setTimeout(() => setInvalidMoveMarker(null), 600);
-            return () => clearTimeout(timer);
-        }
-    }, [invalidMoveMarker]);
 
     // Keyboard Movement
     useEffect(() => {
@@ -111,8 +100,6 @@ export default function MainStage() {
             if (moved) {
                 if (isValidMove(newX, newY)) {
                     setPlayerPos({ x: newX, y: newY });
-                } else {
-                    setInvalidMoveMarker({ x: newX, y: newY, id: Date.now() });
                 }
             }
         };
@@ -169,21 +156,6 @@ export default function MainStage() {
                     <Swords className="w-5 h-5 text-amber-400 drop-shadow-md" />
                 )}
             </div>
-
-            {/* Invalid Move Visual Feedback */}
-            {invalidMoveMarker && (
-                <div
-                    key={invalidMoveMarker.id}
-                    className="absolute flex items-center justify-center animate-in fade-in zoom-in slide-in-from-bottom-2 duration-300 pointer-events-none z-20"
-                    style={{
-                        left: `${invalidMoveMarker.x}%`,
-                        top: `${invalidMoveMarker.y}%`,
-                        transform: 'translate(-50%, -50%)'
-                    }}
-                >
-                    <XCircle className="w-8 h-8 text-red-500 drop-shadow-[0_0_10px_rgba(239,68,68,0.8)] animate-pulse" />
-                </div>
-            )}
 
             {/* Enemy Tokens */}
             {enemies.map(enemy => (
