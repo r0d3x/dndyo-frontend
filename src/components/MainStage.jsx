@@ -76,6 +76,51 @@ export default function MainStage() {
         }
     }, [invalidMoveMarker]);
 
+    // Keyboard Movement
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            // Only move if we aren't rolling dice or focused on an input
+            if (showDiceOverlay || document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
+
+            const STEP = 2; // Movement speed
+            let newX = playerPos.x;
+            let newY = playerPos.y;
+            let moved = false;
+
+            switch (e.key) {
+                case 'ArrowUp':
+                case 'w':
+                case 'W':
+                    newY -= STEP; moved = true; break;
+                case 'ArrowDown':
+                case 's':
+                case 'S':
+                    newY += STEP; moved = true; break;
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    newX -= STEP; moved = true; break;
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    newX += STEP; moved = true; break;
+                default:
+                    return;
+            }
+
+            if (moved) {
+                if (isValidMove(newX, newY)) {
+                    setPlayerPos({ x: newX, y: newY });
+                } else {
+                    setInvalidMoveMarker({ x: newX, y: newY, id: Date.now() });
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [playerPos, showDiceOverlay]);
+
     const handleRoll = () => {
         setRolling(true);
         setRollResult(null);
@@ -111,7 +156,7 @@ export default function MainStage() {
 
             {/* Player Token */}
             <div
-                className="absolute w-10 h-10 rounded-full border-2 border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.8)] flex items-center justify-center transition-all duration-500 ease-in-out z-10 pointer-events-none bg-slate-900 overflow-hidden"
+                className="absolute w-10 h-10 rounded-full border-2 border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.8)] flex items-center justify-center transition-all duration-300 ease-out z-10 pointer-events-none bg-slate-900 overflow-hidden"
                 style={{
                     left: `${playerPos.x}%`,
                     top: `${playerPos.y}%`,

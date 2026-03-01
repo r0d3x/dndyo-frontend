@@ -31,14 +31,14 @@ function StatCard({ statKey, value }) {
     const formattedMod = modifier >= 0 ? `+${modifier}` : `${modifier}`;
 
     return (
-        <div className="vintage-card relative flex flex-col items-center justify-center gap-0.5 rounded-md p-3 cursor-default transition-all">
-            <Icon className="w-4 h-4 text-amber-500/50 mb-1" />
-            <span className="font-serif-dm text-[32px] font-bold text-slate-200 leading-none glow-gold-text">{value}</span>
-            <span className="font-serif-dm text-[9px] uppercase tracking-[0.25em] text-slate-500 mt-1">
+        <div className="rpg-stat-card flex flex-col items-center justify-center gap-0.5 p-3 cursor-default transition-all">
+            <Icon className="w-5 h-5 text-amber-500/50 mb-1" />
+            <span className="font-serif-dm text-[34px] font-bold leading-none rpg-text-gold">{value}</span>
+            <span className="font-serif-dm text-[10px] uppercase tracking-[0.25em] text-amber-500/60 mt-1 font-bold">
                 {statLabels[statKey]}
             </span>
             {/* Bonus Modifier */}
-            <span className="absolute top-1.5 right-1.5 text-[11px] font-bold text-amber-400 glow-gold-text">
+            <span className="absolute top-1.5 right-1.5 text-[11px] font-bold text-amber-400 drop-shadow-md">
                 {formattedMod}
             </span>
         </div>
@@ -58,7 +58,7 @@ function InventorySlot({ item }) {
     const borderClass = rarityBorders[item.rarity] || rarityBorders.common;
 
     return (
-        <div className={`group relative aspect-square flex items-center justify-center rounded-md vintage-slot cursor-pointer ${borderClass} transition-all duration-300`}>
+        <div className={`group relative aspect-square flex items-center justify-center rpg-inventory-slot cursor-pointer ${borderClass} transition-all duration-300`}>
             <span className="text-amber-500/70 group-hover:text-amber-400 transition-colors drop-shadow-md">
                 <ItemIcon icon={item.icon} size={20} />
             </span>
@@ -74,8 +74,8 @@ function InventorySlot({ item }) {
             <div className="absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900/95 border border-amber-500/30 px-3 py-1.5 text-[11px] font-serif-dm text-amber-100 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-2xl">
                 <span className="block">{item.name}</span>
                 <span className={`block text-[9px] capitalize mt-0.5 ${item.rarity === 'legendary' ? 'text-amber-400' :
-                        item.rarity === 'epic' ? 'text-purple-400' :
-                            item.rarity === 'rare' ? 'text-blue-400' : 'text-slate-400'
+                    item.rarity === 'epic' ? 'text-purple-400' :
+                        item.rarity === 'rare' ? 'text-blue-400' : 'text-slate-400'
                     }`}>{item.rarity} Item</span>
             </div>
         </div>
@@ -100,54 +100,53 @@ export default function CharacterSheet() {
     const xpPercent = (character.xp.current / character.xp.max) * 100;
 
     return (
-        <div className="flex flex-col h-full bg-slate-950 panel-border-r overflow-hidden">
+        <div className="flex flex-col h-full rpg-panel-bg panel-border-r overflow-hidden relative shadow-[inset_-10px_0_20px_rgba(0,0,0,0.8)]">
             {/* ── Hero Section (Avatar & Nameplate) ───── */}
-            <div className="p-4 flex flex-col items-center relative">
-                <div className="relative w-4/5 aspect-square overflow-visible mb-6">
-                    <div className="w-full h-full rounded-md overflow-hidden border-2 border-amber-600/40 glow-gold shadow-2xl relative">
+            <div className="p-6 pb-2 flex flex-col items-center relative z-10">
+                <div className="relative w-36 h-36 mb-2">
+                    <div className="w-full h-full rpg-avatar-frame overflow-hidden bg-[#050403]">
                         <img
                             src={character.avatar}
                             alt={character.name}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover rounded-full"
                         />
-                        <div className="absolute inset-0 shadow-[inset_0_0_20px_rgba(0,0,0,0.8)] pointer-events-none" />
                     </div>
 
-                    {/* AC Badge breaking out of bottom right */}
-                    <div className="absolute -bottom-4 -right-4 w-12 h-12 flex items-center justify-center drop-shadow-2xl z-20">
-                        <Shield className="absolute inset-0 w-full h-full text-slate-400 fill-slate-800 drop-shadow-md" strokeWidth={1.5} />
+                    {/* AC Badge */}
+                    <div className="absolute -bottom-2 -right-2 w-12 h-12 flex items-center justify-center drop-shadow-2xl z-20">
+                        <Shield className="absolute inset-0 w-full h-full text-slate-300 fill-slate-900 drop-shadow-md" strokeWidth={1.5} />
                         <div className="relative flex flex-col items-center justify-center mt-[-3px]">
-                            <span className="font-serif-dm text-base font-bold text-white tracking-widest leading-none glow-gold-text ml-[3px]">{character.ac}</span>
+                            <span className="font-serif-dm text-base font-bold text-white tracking-widest leading-none rpg-text-gold ml-[3px]">{character.ac}</span>
                         </div>
                     </div>
                 </div>
 
-                {/* Nameplate separated from image */}
-                <div className="text-center w-full bg-gradient-to-r from-transparent via-slate-800/80 to-transparent py-2 border-y border-amber-500/20">
-                    <h2 className="font-serif-dm text-lg font-bold text-amber-400 glow-gold-text tracking-wide">
+                {/* Nameplate plaque */}
+                <div className="text-center w-full max-w-[90%] rpg-plaque py-2.5 rounded-[2px] z-10 -mt-2">
+                    <h2 className="font-serif-dm text-lg font-bold rpg-text-gold tracking-wide">
                         {character.name}
                     </h2>
-                    <p className="font-serif-dm text-[9px] tracking-[0.25em] text-slate-400 mt-1 uppercase">
+                    <p className="font-serif-dm text-[9px] tracking-[0.2em] text-amber-500/50 mt-1 uppercase font-bold">
                         Level {character.level} · {character.class}
                     </p>
                 </div>
             </div>
 
             {/* ── Status Bars ─────────────────────────── */}
-            <div className="px-5 pt-1 space-y-3">
+            <div className="px-5 pt-3 space-y-3 relative z-10">
                 {/* HP Bar */}
                 <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                        <span className="font-serif-dm text-[11px] tracking-[0.1em] text-red-400/90 font-semibold drop-shadow-sm">
+                    <div className="flex items-center justify-between mb-1">
+                        <span className="font-serif-dm text-[11px] tracking-[0.1em] text-red-500 font-bold drop-shadow-sm">
                             Health
                         </span>
-                        <span className="font-serif-dm text-[11px] text-slate-300 tabular-nums">
+                        <span className="font-serif-dm text-[11px] text-red-200/50 tabular-nums">
                             {character.hp.current} / {character.hp.max}
                         </span>
                     </div>
-                    <div className="h-3 w-full rounded-full bg-slate-900 shadow-inner overflow-hidden border border-slate-800">
+                    <div className="h-3.5 w-full rpg-bar-track overflow-hidden">
                         <div
-                            className={`bar-fill h-full rounded-full bg-gradient-to-r from-red-900 via-red-600 to-red-400 shadow-[inset_0_1px_2px_rgba(255,255,255,0.3)] ${character.hp.current < 15 ? "animate-pulse" : ""}`}
+                            className={`bar-fill h-full bg-gradient-to-r from-red-900 via-red-600 to-red-500 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] ${character.hp.current < 15 ? "animate-pulse" : ""}`}
                             style={{ width: `${hpPercent}%` }}
                         />
                     </div>
@@ -155,17 +154,17 @@ export default function CharacterSheet() {
 
                 {/* XP Bar */}
                 <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                        <span className="font-serif-dm text-[11px] tracking-[0.1em] text-amber-400/80 font-semibold drop-shadow-sm">
+                    <div className="flex items-center justify-between mb-1">
+                        <span className="font-serif-dm text-[11px] tracking-[0.1em] text-amber-500 font-bold drop-shadow-sm">
                             Experience
                         </span>
-                        <span className="font-serif-dm text-[11px] text-slate-300 tabular-nums">
+                        <span className="font-serif-dm text-[11px] text-amber-200/50 tabular-nums">
                             {character.xp.current} / {character.xp.max}
                         </span>
                     </div>
-                    <div className="h-2 w-full rounded-full bg-slate-900 shadow-inner overflow-hidden border border-slate-800">
+                    <div className="h-2 w-full rpg-bar-track overflow-hidden">
                         <div
-                            className="bar-fill h-full rounded-full bg-gradient-to-r from-amber-900 via-amber-600 to-amber-300 shadow-[inset_0_1px_2px_rgba(255,255,255,0.4)]"
+                            className="bar-fill h-full bg-gradient-to-r from-amber-900 via-amber-600 to-amber-400 shadow-[inset_0_1px_1px_rgba(255,255,255,0.3)]"
                             style={{ width: `${xpPercent}%` }}
                         />
                     </div>
@@ -173,9 +172,9 @@ export default function CharacterSheet() {
             </div>
 
             {/* ── Ornamental divider ────────────────── */}
-            <div className="px-5 pt-4 pb-1">
+            <div className="px-5 pt-5 pb-1 relative z-10">
                 <div className="ornament-divider">
-                    <span className="text-amber-400/60 text-[10px] glow-gold-text">◆</span>
+                    <span className="text-amber-500/80 text-[10px] drop-shadow-md">◆</span>
                 </div>
             </div>
 
