@@ -1,5 +1,7 @@
 # Forge & Fable 🐉
 
+[![Fable Demo Video](https://img.youtube.com/vi/guV4ySyqwlg/maxresdefault.jpg)](https://youtu.be/guV4ySyqwlg)
+
 A premium, cinematic Virtual Tabletop (VTT) RPG interface built with React and Tailwind CSS. This project serves as the highly polished frontend for an AI-powered Dungeon Master backend (`dndyo-backend`).
 
 ## ✨ Features
