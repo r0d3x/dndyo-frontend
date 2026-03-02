@@ -14,6 +14,14 @@ export async function createGame(gameName = "Forge & Fable Session") {
     return res.json();
 }
 
+export async function seedDemoGame() {
+    const res = await fetch(`${API_BASE_URL}/seed`, {
+        method: "POST"
+    });
+    if (!res.ok) throw new Error("Failed to seed game");
+    return res.json();
+}
+
 export async function getGame(gameId) {
     const res = await fetch(`${API_BASE_URL}/${gameId}`);
     if (!res.ok) throw new Error("Failed to fetch game");
@@ -27,13 +35,13 @@ export async function getGameState(gameId) {
 }
 
 export async function getChatMessages(gameId) {
-    const res = await fetch(`${API_BASE_URL}/${gameId}/messages`);
+    const res = await fetch(`${API_BASE_URL}/${gameId}/chat/messages`);
     if (!res.ok) throw new Error("Failed to fetch messages");
     return res.json();
 }
 
 export async function sendChatMessage(gameId, content, role = "user") {
-    const res = await fetch(`${API_BASE_URL}/${gameId}/message`, {
+    const res = await fetch(`${API_BASE_URL}/${gameId}/chat/message`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -50,7 +58,7 @@ export async function sendChatMessage(gameId, content, role = "user") {
 // Helper to initiate the AI DM turn via SSE
 // We use EventSource or streamed fetch for this. We will use a raw streaming fetch.
 export async function runAIResponse(gameId, onChunk) {
-    const res = await fetch(`${API_BASE_URL}/${gameId}/run-ai`, {
+    const res = await fetch(`${API_BASE_URL}/${gameId}/chat/run-ai`, {
         method: "POST",
         headers: { "Accept": "text/plain" }
     });
@@ -75,7 +83,7 @@ export async function runAIResponse(gameId, onChunk) {
 }
 
 export async function attackLiveActor(gameId, liveActorId, attackBonus, damageNumDice, damageDiceFaces, damageBonus) {
-    const res = await fetch(`${API_BASE_URL}/${gameId}/attack-live-actor`, {
+    const res = await fetch(`${API_BASE_URL}/${gameId}/state/attack-live-actor`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

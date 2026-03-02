@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
     Swords,
     Wind,
@@ -7,7 +7,6 @@ import {
     Package,
     Shield,
 } from "lucide-react";
-import { character, inventory } from "../data/mockData";
 import ItemIcon from "./ItemIcons";
 import { useGame } from "../contexts/GameContext";
 
@@ -97,25 +96,66 @@ function SectionLabel({ icon: Icon, children }) {
 
 /* ── Character Sheet (Left Panel) ───────────────── */
 export default function CharacterSheet() {
-    const { gameState } = useGame();
+    const { gameState, activePlayerId, setActivePlayerId } = useGame();
 
-    // Pull real HP from the backend database if available
-    const playerLiveActor = gameState?.live_actors?.find(la => la.role === "Player");
-    const currentHp = playerLiveActor?.current_hp ?? character.hp.current;
+    // Pull all player actors
+    const players = gameState?.live_actors?.filter(la => la.role === "Player") || [];
+
+    // If activePlayerId isn't valid, default to the first player
+    const activePlayerActor = players.find(p => p.actor_id === activePlayerId) || players[0];
+
+    const currentHp = activePlayerActor?.current_hp ?? 0;
+    const maxHp = activePlayerActor?.max_hp ?? 1;
+    const level = activePlayerActor?.level ?? 1;
+    const armorClass = activePlayerActor?.armor_class ?? 10;
+    const charName = activePlayerActor?.name ?? "Unknown";
+    const charClass = activePlayerActor?.character_class ?? "Class";
+    const avatarUrl = activePlayerActor?.image_url ?? "/avatar.png";
+
+    const liveStats = {
+        strength: activePlayerActor?.strength ?? 10,
+        dexterity: activePlayerActor?.dexterity ?? 10,
+        intelligence: activePlayerActor?.intelligence ?? 10,
+        charisma: activePlayerActor?.charisma ?? 10,
+    };
+
+    const [activeTab, setActiveTab] = useState('inventory'); // 'inventory' | 'abilities'
 
     // Calculate percentages
-    const hpPercent = (currentHp / character.hp.max) * 100;
-    const xpPercent = (character.xp.current / character.xp.max) * 100;
+    const hpPercent = maxHp > 0 ? (currentHp / maxHp) * 100 : 0;
+    const xpCurrent = 150;
+    const xpMax = 300;
+    const xpPercent = (xpCurrent / xpMax) * 100;
 
     return (
-        <div className="flex flex-col h-full rpg-panel-bg panel-border-r overflow-hidden relative shadow-[inset_-10px_0_20px_rgba(0,0,0,0.8)]">
+        <div className="flex flex-col h-full rpg-panel-bg overflow-hidden relative shadow-[inset_0_0_40px_rgba(0,0,0,0.9)]">
+
+            {/* ── Player Selector (If Multiple) ───────── */}
+            {players.length > 1 && (
+                <div className="flex justify-center gap-3 pt-4 px-4 relative z-20">
+                    {players.map(p => {
+                        const isSelected = activePlayerActor?.actor_id === p.actor_id;
+                        return (
+                            <button
+                                key={p.actor_id}
+                                onClick={() => setActivePlayerId(p.actor_id)}
+                                className={`w-10 h-10 rounded-full border-2 overflow-hidden transition-all ${isSelected ? 'border-amber-400 scale-110 shadow-[0_0_10px_rgba(251,191,36,0.5)]' : 'border-slate-700 opacity-60 hover:opacity-100 hover:border-amber-500/50'}`}
+                                title={p.name}
+                            >
+                                <img src={p.image_url || "/avatar.png"} alt={p.name} className="w-full h-full object-cover" />
+                            </button>
+                        );
+                    })}
+                </div>
+            )}
+
             {/* ── Hero Section (Avatar & Nameplate) ───── */}
-            <div className="p-6 pb-2 flex flex-col items-center relative z-10">
+            <div className={`p-6 pb-2 flex flex-col items-center relative z-10 ${players.length > 1 ? 'pt-2' : ''}`}>
                 <div className="relative w-36 h-36 mb-2">
                     <div className="w-full h-full rpg-avatar-frame overflow-hidden bg-[#050403]">
                         <img
-                            src={character.avatar}
-                            alt={character.name}
+                            src={avatarUrl}
+                            alt={charName}
                             className="w-full h-full object-cover rounded-full"
                         />
                     </div>
@@ -124,7 +164,7 @@ export default function CharacterSheet() {
                     <div className="absolute -bottom-2 -right-2 w-12 h-12 flex items-center justify-center drop-shadow-2xl z-20">
                         <Shield className="absolute inset-0 w-full h-full text-slate-300 fill-slate-900 drop-shadow-md" strokeWidth={1.5} />
                         <div className="relative flex flex-col items-center justify-center mt-[-3px]">
-                            <span className="font-serif-dm text-base font-bold text-white tracking-widest leading-none rpg-text-gold ml-[3px]">{character.ac}</span>
+                            <span className="font-serif-dm text-base font-bold text-white tracking-widest leading-none rpg-text-gold ml-[3px]">{armorClass}</span>
                         </div>
                     </div>
                 </div>
@@ -132,10 +172,10 @@ export default function CharacterSheet() {
                 {/* Nameplate plaque */}
                 <div className="text-center w-full max-w-[90%] rpg-plaque py-2.5 rounded-[2px] z-10 -mt-2">
                     <h2 className="font-serif-dm text-lg font-bold rpg-text-gold tracking-wide">
-                        {character.name}
+                        {charName}
                     </h2>
                     <p className="font-serif-dm text-[9px] tracking-[0.2em] text-amber-500/50 mt-1 uppercase font-bold">
-                        Level {character.level} · {character.class}
+                        Level {level} · {charClass}
                     </p>
                 </div>
             </div>
@@ -149,12 +189,12 @@ export default function CharacterSheet() {
                             Health
                         </span>
                         <span className="font-serif-dm text-[11px] text-red-200/50 tabular-nums">
-                            {currentHp} / {character.hp.max}
+                            {currentHp} / {maxHp}
                         </span>
                     </div>
                     <div className="h-3.5 w-full rpg-bar-track overflow-hidden">
                         <div
-                            className={`bar-fill h-full bg-gradient-to-r from-red-900 via-red-600 to-red-500 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] ${currentHp < 15 ? "animate-pulse" : ""}`}
+                            className={`bar-fill h-full bg-gradient-to-r from-red-900 via-red-600 to-red-500 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] ${currentHp <= maxHp * 0.25 ? "animate-pulse" : ""}`}
                             style={{ width: `${Math.max(0, hpPercent)}%` }}
                         />
                     </div>
@@ -167,7 +207,7 @@ export default function CharacterSheet() {
                             Experience
                         </span>
                         <span className="font-serif-dm text-[11px] text-amber-200/50 tabular-nums">
-                            {character.xp.current} / {character.xp.max}
+                            {xpCurrent} / {xpMax}
                         </span>
                     </div>
                     <div className="h-2 w-full rpg-bar-track overflow-hidden">
@@ -190,7 +230,7 @@ export default function CharacterSheet() {
             <div className="px-5 pt-2">
                 <SectionLabel>Attributes</SectionLabel>
                 <div className="grid grid-cols-2 gap-2">
-                    {Object.entries(character.stats).map(([key, val]) => (
+                    {Object.entries(liveStats).map(([key, val]) => (
                         <StatCard key={key} statKey={key} value={val} />
                     ))}
                 </div>
@@ -203,15 +243,53 @@ export default function CharacterSheet() {
                 </div>
             </div>
 
-            {/* ── Inventory ───────────────────────────── */}
+            {/* ── Tabs: Inventory / Abilities ────────── */}
             <div className="px-5 pt-2 flex-1 min-h-0 flex flex-col">
-                <SectionLabel icon={Package}>Inventory</SectionLabel>
+                <div className="flex items-center gap-4 mb-3 border-b border-slate-800/60 pb-2">
+                    <button
+                        onClick={() => setActiveTab('inventory')}
+                        className={`font-serif-dm text-[11px] tracking-[0.12em] transition-colors ${activeTab === 'inventory' ? 'text-amber-400 glow-gold-text' : 'text-slate-500 hover:text-amber-500/70'}`}
+                    >
+                        INVENTORY
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('abilities')}
+                        className={`font-serif-dm text-[11px] tracking-[0.12em] transition-colors ${activeTab === 'abilities' ? 'text-amber-400 glow-gold-text' : 'text-slate-500 hover:text-amber-500/70'}`}
+                    >
+                        ABILITIES
+                    </button>
+                </div>
+
                 <div className="flex-1 overflow-y-auto scrollbar-hide pb-4">
-                    <div className="grid grid-cols-3 gap-2">
-                        {inventory.map((item) => (
-                            <InventorySlot key={item.id} item={item} />
-                        ))}
-                    </div>
+                    {activeTab === 'inventory' ? (
+                        <div className="grid grid-cols-3 gap-2">
+                            {activePlayerActor?.inventory && activePlayerActor.inventory.length > 0 ? (
+                                activePlayerActor.inventory.map((item) => (
+                                    <InventorySlot key={item.id} item={item} />
+                                ))
+                            ) : (
+                                <div className="col-span-3 text-center mt-6 flex flex-col items-center">
+                                    <Package className="w-6 h-6 text-slate-700/50 mb-2" />
+                                    <p className="text-slate-500/70 text-[11px] italic font-serif-dm">Backpack is empty.</p>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="flex flex-col gap-2">
+                            {activePlayerActor?.abilities?.map((ability, idx) => (
+                                <div key={idx} className="p-2.5 rounded-[4px] bg-slate-900/40 border border-slate-700/30 hover:border-amber-500/30 transition-colors">
+                                    <div className="flex items-center justify-between mb-1">
+                                        <span className="font-serif-dm text-xs font-bold text-amber-100/90 tracking-wide">{ability.name}</span>
+                                        <span className="text-[9px] uppercase tracking-[0.15em] text-amber-500/50">{ability.ability_type}</span>
+                                    </div>
+                                    <p className="font-serif-dm text-[11px] text-slate-400/80 leading-relaxed text-justify">{ability.description}</p>
+                                </div>
+                            ))}
+                            {(!activePlayerActor?.abilities || activePlayerActor.abilities.length === 0) && (
+                                <p className="text-slate-500/70 text-[11px] italic font-serif-dm text-center mt-6">Capabilities unknown.</p>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
